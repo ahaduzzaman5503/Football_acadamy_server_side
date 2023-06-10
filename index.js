@@ -66,9 +66,17 @@ async function run() {
           res.send(result)
         })
 
+        // Add Class Data
+        const addclassdatabase = client.db("add-class");
+        const addClassCollection = addclassdatabase.collection("add-class-data");
+    
+        app.post("/addclassdata", async (req, res) => {
+          const classData = req.body;
+          console.log("new car data", classData);
+          const result = await addClassCollection.insertOne(classData);
+          res.send(result);
+        });
 
-        
-  
       console.log(
         "Pinged your deployment. You successfully connected to MongoDB!"
       );
