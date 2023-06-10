@@ -40,6 +40,34 @@ async function run() {
           const result = await cursor.toArray();
           res.send(result);
         });
+
+        const footballclassdatabase = client.db("football-class");
+        const footballclassCollection = footballclassdatabase.collection("football-class-info");
+    
+        app.get("/footballclass", async (req, res) => {
+          const cursor = footballclassCollection.find();
+          const result = await cursor.toArray();
+          res.send(result);
+        });
+
+        const allusersdatabase = client.db("allusers");
+        const allUsersCollection = allusersdatabase.collection("users");
+
+        app.put('/users/:email', async (req, res) => {
+          const email = req.params.email
+          const user = req.body
+          const query = {email: email}
+          const options = {upsert: true}
+          const updateDoc = {
+            $set: user,
+          }
+          const result = await allUsersCollection.updateOne(query, updateDoc, options)
+          console.log(result)
+          res.send(result)
+        })
+
+
+        
   
       console.log(
         "Pinged your deployment. You successfully connected to MongoDB!"
