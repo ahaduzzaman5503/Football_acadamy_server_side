@@ -77,6 +77,30 @@ async function run() {
           res.send(result);
         });
 
+        // Get All Class Data
+        app.get("/addclassdata", async (req, res) => {
+          const cursor = addClassCollection.find();
+          const result = await cursor.toArray();
+          res.send(result);
+        });
+
+        // Student Dashboard my Classes
+        const SelectClassdatabase = client.db("select-class");
+        const SelectClassCollection = SelectClassdatabase.collection("select-class-data");
+
+        app.post("/selectclass", async (req, res) => {
+          const singleClass = req.body; 
+          const result = await SelectClassCollection.insertOne(singleClass)
+          res.send(result);
+        });
+
+        app.get("/selectclass", async (req, res) => {
+          const cursor = SelectClassCollection.find();
+          const result = await cursor.toArray();
+          res.send(result);
+        });
+        
+
       console.log(
         "Pinged your deployment. You successfully connected to MongoDB!"
       );
