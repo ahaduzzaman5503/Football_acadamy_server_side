@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -11,7 +12,6 @@ app.use(express.json());
 const uri =
  "mongodb+srv://ahaduzzaman45503:d4IbTfNI8nR5uH0V@cluster0.qzwnegb.mongodb.net/?retryWrites=true&w=majority";
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -99,6 +99,29 @@ async function run() {
           const result = await cursor.toArray();
           res.send(result);
         });
+
+        app.delete('/selectclass/:id', async(req, res) => {
+          const id = req.params.id;
+          const query = { _id: new ObjectId(id)};
+          const result = await SelectClassCollection.deleteOne(query);
+          res.send(result)
+        })
+
+        // All about payment 
+        app.post('/createpayment', async (req, res) => {
+          const {price} = req.body;
+          const amount = price * 100;
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: 'usd',
+            payment_method_types: ['card']
+          });
+          res.send({
+            clientSecret: paymentIntent.client_secret
+            })
+          })
+
+
         
 
       console.log(
