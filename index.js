@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
+
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
@@ -56,6 +58,7 @@ async function run() {
         app.put('/users/:email', async (req, res) => {
           const email = req.params.email
           const user = req.body
+          console.log("user", user);
           const query = {email: email}
           const options = {upsert: true}
           const updateDoc = {
@@ -64,6 +67,30 @@ async function run() {
           const result = await allUsersCollection.updateOne(query, updateDoc, options)
           console.log(result)
           res.send(result)
+        })
+
+        app.get('/users', async (req, res) => {
+          const result = await allUsersCollection.find().toArray();
+          res.send(result);
+        })
+
+        app.patch('/users/admin/:id', async (req, res) => {
+          const id = req.params.id;
+          const filter = { _id: new ObjectId(id)}
+          const updateDoc = {
+            $set: {
+              role: 'admin'
+            },
+          };
+          const result = await allUsersCollection.updateOne(filter, updateDoc);
+          res.send(result)
+        } )
+
+        app.post('/jwt', (req, res)=> {
+          const user = req.body;
+          const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+            expiresIn: '1h'})
+            res.send({ token })
         })
 
         // Add Class Data
