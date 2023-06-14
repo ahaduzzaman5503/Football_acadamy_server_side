@@ -26,16 +26,6 @@ const verifyJWT = (req, res, next) => {
   })
 }
 
-const verifyAdmin = async (req, res) => {
-  const email = req.decoded.email;
-  const query = {email: email}
-  const user = await allUsersCollection.findOne(query);
-  if(user?.role !== 'admin'){
-    return res.status(403).send({error: true, massage: 'forbidden message'});
-  }
-  next()
-}
-
 
 const uri =
  "mongodb+srv://ahaduzzaman45503:d4IbTfNI8nR5uH0V@cluster0.qzwnegb.mongodb.net/?retryWrites=true&w=majority";
@@ -53,18 +43,37 @@ async function run() {
     try {
 
         await client.connect();
-
+        
+        
         const allInstractordatabase = client.db("football-acadamy");
         const allInstractorCollection = allInstractordatabase.collection("acadamy-person");
-    
+        const extradatabase = client.db("Extra-Section");
+        const ExtraCollection = extradatabase.collection("Extra-Section-single");
+        const footballclassdatabase = client.db("football-class");
+        const footballclassCollection = footballclassdatabase.collection("football-class-info");
+        const allusersdatabase = client.db("allusers");
+        const allUsersCollection = allusersdatabase.collection("users");
+        const addclassdatabase = client.db("add-class");
+        const addClassCollection = addclassdatabase.collection("add-class-data");
+        const SelectClassdatabase = client.db("select-class");
+        const SelectClassCollection = SelectClassdatabase.collection("select-class-data");
+        
+        const verifyAdmin = async (req, res, next) => {
+          const email = req.decoded.email;
+          const query = {email: email}
+          const user = await allUsersCollection.findOne(query);
+          if(user?.role !== 'admin'){
+            return res.status(403).send({error: true, massage: 'forbidden message'});
+          }
+          next()
+        }
+        
         app.get("/instractor", async (req, res) => {
           const cursor = allInstractorCollection.find();
           const result = await cursor.toArray();
           res.send(result);
         });
 
-        const extradatabase = client.db("Extra-Section");
-        const ExtraCollection = extradatabase.collection("Extra-Section-single");
     
         app.get("/extrasection", async (req, res) => {
           const cursor = ExtraCollection.find();
@@ -72,17 +81,12 @@ async function run() {
           res.send(result);
         });
 
-        const footballclassdatabase = client.db("football-class");
-        const footballclassCollection = footballclassdatabase.collection("football-class-info");
     
         app.get("/footballclass", async (req, res) => {
           const cursor = footballclassCollection.find();
           const result = await cursor.toArray();
           res.send(result);
         });
-
-        const allusersdatabase = client.db("allusers");
-        const allUsersCollection = allusersdatabase.collection("users");
 
         app.put('/users/:email', async (req, res) => {
           const email = req.params.email
@@ -135,11 +139,7 @@ async function run() {
             res.send({ token })
         })
 
-
-
         // Add Class Data
-        const addclassdatabase = client.db("add-class");
-        const addClassCollection = addclassdatabase.collection("add-class-data");
     
         app.post("/addclassdata", async (req, res) => {
           const classData = req.body;
@@ -156,8 +156,6 @@ async function run() {
         });
 
         // Student Dashboard my Classes
-        const SelectClassdatabase = client.db("select-class");
-        const SelectClassCollection = SelectClassdatabase.collection("select-class-data");
 
         app.post("/selectclass", async (req, res) => {
           const singleClass = req.body; 
@@ -195,9 +193,6 @@ async function run() {
             clientSecret: paymentIntent.client_secret
             })
           })
-
-
-        
 
       console.log(
         "Pinged your deployment. You successfully connected to MongoDB!"
