@@ -26,6 +26,16 @@ const verifyJWT = (req, res, next) => {
   })
 }
 
+const verifyAdmin = async (req, res) => {
+  const email = req.decoded.email;
+  const query = {email: email}
+  const user = await allUsersCollection.findOne(query);
+  if(user?.role !== 'admin'){
+    return res.status(403).send({error: true, massage: 'forbidden message'});
+  }
+  next()
+}
+
 
 const uri =
  "mongodb+srv://ahaduzzaman45503:d4IbTfNI8nR5uH0V@cluster0.qzwnegb.mongodb.net/?retryWrites=true&w=majority";
@@ -41,6 +51,9 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
+
+        await client.connect();
+
         const allInstractordatabase = client.db("football-acadamy");
         const allInstractorCollection = allInstractordatabase.collection("acadamy-person");
     
@@ -85,7 +98,7 @@ async function run() {
           res.send(result)
         })
 
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
           const result = await allUsersCollection.find().toArray();
           res.send(result);
         })
@@ -121,6 +134,8 @@ async function run() {
             expiresIn: '1h'})
             res.send({ token })
         })
+
+
 
         // Add Class Data
         const addclassdatabase = client.db("add-class");
