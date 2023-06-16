@@ -1,13 +1,13 @@
 const express = require("express");
+require("dotenv").config();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
-require("dotenv").config();
 
-const app = express();
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 const port = process.env.PORT || 5000;
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
@@ -42,7 +42,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
 
-        await client.connect();
+        // await client.connect();
         
         
         const allInstractordatabase = client.db("football-acadamy");
@@ -87,6 +87,13 @@ async function run() {
           const result = await cursor.toArray();
           res.send(result);
         });
+
+        app.get("/dashboard/payment/:id", async (req, res) => {
+          const id = req.params.id;
+          const query = {_id: new ObjectId(id)};
+          const result = await SelectClassCollection.findOne(query);
+          res.send(result)
+        })
 
         app.put('/users/:email', async (req, res) => {
           const email = req.params.email
@@ -164,9 +171,11 @@ async function run() {
         });
 
         app.get("/selectclass", verifyJWT, async (req, res) => {
+          const email = req.query.email;
           const cursor = SelectClassCollection.find();
           const decodedEmail = req.decoded.email;
-          if(email !== decodedEmail){
+          if( email !== decodedEmail){
+            console.log(email);
             return res.status(401).send({error: true, massage: 'Porviden '});
           }
           const result = await cursor.toArray();
@@ -181,9 +190,11 @@ async function run() {
         })
 
         // All about payment 
-        app.post('/createpayment', async (req, res) => {
-          const {price} = req.body;
-          const amount = price * 100;
+        app.post('/createpayment', verifyJWT, async (req, res) => {
+          const { price } = req.body;
+          const amount = parseInt(price) * 100;
+          console.log(typeof amount);
+          console.log(price, amount);
           const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
             currency: 'usd',
